@@ -1,0 +1,114 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"log"
+	"os"
+	"regexp"
+	"strconv"
+)
+
+// fileName represents the name of the file to be processed
+var fileName = "input"
+
+// spelledOutNumbers maps spelled-out numbers to their integer counterparts
+var spelledOutNumbers = map[string]int{
+	"one":   1,
+	"two":   2,
+	"three": 3,
+	"four":  4,
+	"five":  5,
+	"six":   6,
+	"seven": 7,
+	"eight": 8,
+	"nine":  9,
+}
+
+func main() {
+	// Process the file and print the total sum of line numbers
+	fileSum, err := calculateSum(fileName)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println("Total sum of line numbers:", fileSum)
+}
+
+// calculateSum opens and processes the file, returning the total sum of line numbers
+func calculateSum(fileName string) (int, error) {
+	// Open the file
+	file, err := os.Open(fileName)
+	if err != nil {
+		return 0, fmt.Errorf("error opening file: %s", err)
+	}
+	defer file.Close()
+
+	// Process the file to calculate the total sum of line numbers
+	fileSum, err := processFile(file)
+	if err != nil {
+		return 0, fmt.Errorf("error processing file: %s", err)
+	}
+
+	return fileSum, nil
+}
+
+// processFile reads each line of the file and calculates the sum of line numbers
+func processFile(reader io.Reader) (int, error) {
+	var fileSum int
+
+	// Create a scanner to read line by line
+	scanner := bufio.NewScanner(reader)
+
+	// Iterate through each line of the file
+	for scanner.Scan() {
+		line := scanner.Text()
+		// Process each line to get the line number
+		lineNumber, err := processLine(line)
+		if err != nil {
+			return 0, fmt.Errorf("error processing line: %s", err)
+		}
+
+		// Add the line number to the total sum
+		fileSum += lineNumber
+	}
+
+	// Check for any scanning errors
+	if err := scanner.Err(); err != nil {
+		return 0, fmt.Errorf("error scanning input: %s", err)
+	}
+
+	return fileSum, nil
+}
+
+// processLine processes a single line of text and extracts the line number
+func processLine(line string) (int, error) {
+	// Regular expression pattern to find single-digit numbers and words representing numbers
+	re := regexp.MustCompile(`([1-9]|one|two|three|four|five|six|seven|eight|nine)`)
+	matches := re.FindAllString(line, -1)
+
+	var convertedMatches []int
+	// Iterate through each match and convert spelled-out numbers to digits
+	for _, match := range matches {
+		if val, ok := spelledOutNumbers[match]; ok {
+			convertedMatches = append(convertedMatches, val)
+		} else if num, err := strconv.Atoi(match); err == nil {
+			convertedMatches = append(convertedMatches, num)
+		}
+	}
+
+	var first, last int
+	// Extract the first and last converted matches
+	if len(convertedMatches) > 0 {
+		first = convertedMatches[0]
+		last = convertedMatches[len(convertedMatches)-1]
+	}
+
+	// Combine the first and last matches into a single integer representing the line number
+	lineNum := first*10 + last
+
+	// Print the line number for debugging
+	fmt.Println("Line:", line, "Line Number:", lineNum)
+
+	return lineNum, nil
+}
