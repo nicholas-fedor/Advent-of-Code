@@ -40,9 +40,81 @@ Looking for sum of all "part numbers" that are adjacent to a symbol.
 Any number adjacent to a symbol, even diagonally, is a "part number" and should be included in the sum.
 Periods do not count as symbols.
 
-Part A - Identify the "part numbers".
+Mapping of the input data to account for (x,y) position will allow for easier
+handling of business logic.
 
+1) Map digits and symbols (except periods)
+2) Iterate left-to-right to identify number series, i.e. 2+ digits.
+3) Validate if "part number" by evaluating if index positions surrounding the
+   number series have symbols.
 
-Part B - Find the sum of the "part numbers".
+i.e. Index from left-to-right and top-to-bottom.
+
+### Example Table Conversion
+
+```console
+9x9 Table Position [x,y] Mapping
+[0,0][1,1][2,1][3,1][4,1][5,1][6,1][7,1][8,1][9,1]
+[0,1][1,1][2,1][3,1][4,1][5,1][6,1][7,1][8,1][9,1]
+[0,2][1,2][2,2][3,2][4,2][5,2][6,2][7,2][8,2][9,2]
+[0,3][1,3][2,3][3,3][4,3][5,3][6,3][7,3][8,3][9,3]
+[0,4][1,4][2,4][3,4][4,4][5,4][6,4][7,4][8,4][9,4]
+[0,5][1,5][2,5][3,5][4,5][5,5][6,5][7,5][8,5][9,5]
+[0,6][1,6][2,6][3,6][4,6][5,6][6,6][7,6][8,6][9,6]
+[0,7][1,7][2,7][3,7][4,7][5,7][6,7][7,7][8,7][9,7]
+[0,8][1,8][2,8][3,8][4,8][5,8][6,8][7,8][8,8][9,8]
+[0,9][1,9][2,9][3,9][4,9][5,9][6,9][7,9][8,9][9,9]
+
+Example Data
+[4][6][7][.][.][1][1][4][.][.]
+[.][.][.][*][.][.][.][.][.][.]
+[.][.][3][5][.][.][6][3][3][.]
+[.][.][.][.][.][.][#][.][.][.]
+[6][1][7][*][.][.][.][.][.][.]
+[.][.][.][.][.][+][.][5][8][.]
+[.][.][5][9][2][.][.][.][.][.]
+[.][.][.][.][.][.][7][5][5][.]
+[.][.][.][$][.][*][.][.][.][.]
+[.][6][6][4][.][5][9][8][.][.]
+
+Transformed to indicate d for digit and s for symbol.
+[d][d][d][.][.][d][d][d][.][.]
+[.][.][.][s][.][.][.][.][.][.]
+[.][.][d][d][.][.][d][d][d][.]
+[.][.][.][.][.][.][s][.][.][.]
+[d][d][d][s][.][.][.][.][.][.]
+[.][.][.][.][.][s][.][d][d][.]
+[.][.][d][d][d][.][.][.][.][.]
+[.][.][.][.][.][.][d][d][d][.]
+[.][.][.][s][.][s][.][.][.][.]
+[.][d][d][d][.][d][d][d][.][.]
+
+Further transformation to indicate y for yes, if d = adjacent to s.
+[y][y][y][.][.][n][n][n][.][.]
+[.][.][.][s][.][.][.][.][.][.]
+[.][.][y][y][.][.][y][y][y][.]
+[.][.][.][.][.][.][s][.][.][.]
+[y][y][y][s][.][.][.][.][.][.]
+[.][.][.][.][.][s][.][n][n][.]
+[.][.][y][y][y][.][.][.][.][.]
+[.][.][.][.][.][.][y][y][y][.]
+[.][.][.][s][.][s][.][.][.][.]
+[.][y][y][y][.][y][y][y][.][.]
+```
+
+Iterate through for digits that are yes and split by symbol or space (period) to
+get "Part Numbers":
+467
+
+35 633
+
+617
+
+592
+755
+
+644 598
+
+Answer = 467 + 35 + 633 + 617 + 592 + 755 + 644 + 598
 
 ## Solution

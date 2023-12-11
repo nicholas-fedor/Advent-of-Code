@@ -11,7 +11,7 @@ Most recent: 2023
 
 // scrapeHTML obtains all of the data from the Advent of Code and organizes it
 // into a local website.
-package main
+package scrapehtml
 
 import (
 	"fmt"

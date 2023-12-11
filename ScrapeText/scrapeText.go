@@ -18,7 +18,7 @@ Directory structure is as follows:
 
 */
 
-package main
+package scrapetext
 
 import (
 	"fmt"
