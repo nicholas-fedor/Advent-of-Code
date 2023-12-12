@@ -20,7 +20,7 @@ type Cell struct {
 
 func main() {
 	// Define the file path
-	filePath := "sample.txt"
+	filePath := "input.txt"
 
 	// Open the file
 	file, err := os.Open(filePath)
@@ -32,9 +32,6 @@ func main() {
 	// Create a slice to store the data
 	var data [][]Cell
 
-	// Instantiate y index for data
-	var yIndex int
-
 	// Store data from file.
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -45,12 +42,10 @@ func main() {
 		var row []Cell
 
 		// Loop through line
-		for xIndex, b := range line {
+		for _, b := range line {
 			// Evaluate each cell.
 			cell := Cell{
 				Value:  string(b),
-				X:      xIndex,
-				Y:      yIndex,
 				Digit:  isDigit(b),
 				Symbol: isSymbol(b),
 			}
@@ -59,9 +54,6 @@ func main() {
 		}
 		// Append the row to the data array.
 		data = append(data, row)
-
-		// Increment y index
-		yIndex++
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -73,32 +65,39 @@ func main() {
 		for x, cell := range line {
 			// Only use origin cells that are digits.
 			if cell.Digit {
-				// Evaluate cell if neighboring cells containing a symbol and
-				// update the data array
+				// Evaluate cell if neighboring cells contain a symbol
 				data[y][x].NearSymbol = isNearSymbol(y, x, data)
 			}
 		}
 	}
 
-	// Find valid number series.
-	var partNumbersStr [][]string
-	var number []string
+	// Iterating through data (again) for digits and to build out numbers.
+	var numbersCell [][]Cell
+	var numberCell []Cell
 	for _, line := range data {
 		for _, cell := range line {
 			// Initial condition for iterating over cells, thus ensuring not
 			// outputting empty slices.
 			switch {
 			case cell.Digit:
-				// TODO: Handle joining together digits for numbers that are
-				// near symbols.
-				number = append(number, cell.Value)
+				numberCell = append(numberCell, cell)
 			case !cell.Digit:
-				if len(number) > 0 {
-					partNumbersStr = append(partNumbersStr, number)
-					number = []string{}
+				if len(numberCell) > 0 && isValid(numberCell) {
+					numbersCell = append(numbersCell, numberCell)
 				}
+				numberCell = []Cell{}
 			}
 		}
+	}
+
+	var partNumbersStr [][]string
+	var partNumber []string
+	for _, cells := range numbersCell {
+		for _, number := range cells {
+			partNumber = append(partNumber, number.Value)
+		}
+		partNumbersStr = append(partNumbersStr, partNumber)
+		partNumber = []string{}
 	}
 
 	// [][]string to []int conversion
@@ -112,9 +111,17 @@ func main() {
 		partNumbersInt = append(partNumbersInt, num)
 	}
 
+	// Sum
+	var partNumSum int
+	for _, number := range partNumbersInt {
+		partNumSum += number
+	}
+
 	// Output
-	fmt.Println(partNumbersInt)
+	fmt.Println("Part Numbers:", partNumbersInt)
+	fmt.Println("Sum of Part Numbers:", partNumSum)
 }
+
 
 func isDigit(r rune) bool {
 	return unicode.IsDigit(r)
@@ -124,7 +131,7 @@ func isSymbol(r rune) bool {
 	return r != '.' && r != ' ' && !isDigit(r)
 }
 
-// Evaluate if a given cell neighbors a cell with a symbol.
+// isNearSymbol evaluates if a cell neighbors a cell with a symbol.
 func isNearSymbol(y, x int, data [][]Cell) bool {
 	maxY := len(data)
 	maxX := len(data[0])
@@ -134,11 +141,23 @@ func isNearSymbol(y, x int, data [][]Cell) bool {
 			if i == 0 && j == 0 {
 				continue // Skip the current cell
 			}
-
+			// Starts at top-left diagonal and moves left-to-right across while
+			// iterating downwards.
 			newY, newX := y+i, x+j
+			// Boundary checks and then checks if cell value is a symbol.
 			if newY >= 0 && newY < maxY && newX >= 0 && newX < maxX && data[newY][newX].Symbol {
 				return true
 			}
+		}
+	}
+	return false
+}
+
+// isValid evaluates if the numberCell contains any cells.NearSymbol
+func isValid(number []Cell) bool {
+	for _, cell := range number {
+		if cell.NearSymbol {
+			return true
 		}
 	}
 	return false

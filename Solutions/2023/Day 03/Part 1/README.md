@@ -118,3 +118,5 @@ get "Part Numbers":
 Answer = 467 + 35 + 633 + 617 + 592 + 755 + 644 + 598
 
 ## Solution
+
+Total Sum of Part Numbers: 539,590
