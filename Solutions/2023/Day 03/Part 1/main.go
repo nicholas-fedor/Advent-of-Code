@@ -9,143 +9,140 @@ import (
 	"unicode"
 )
 
+type Schematic struct {
+	Rows []Row
+}
+
+type Row struct {
+	Cells []Cell
+}
+
 type Cell struct {
 	Value      string
-	X          int
-	Y          int
-	Digit      bool
-	Symbol     bool
+	Type       string
 	NearSymbol bool
 }
 
 func main() {
-	// Define the file path
 	filePath := "input.txt"
 
-	// Open the file
 	file, err := os.Open(filePath)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 
-	// Create a slice to store the data
-	var data [][]Cell
+	var schematic Schematic
 
-	// Store data from file.
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		// Read each line as a byte array
 		line := scanner.Text()
-
-		// Create a new row to store the cells
-		var row []Cell
-
-		// Loop through line
+		var row Row
 		for _, b := range line {
-			// Evaluate each cell.
 			cell := Cell{
-				Value:  string(b),
-				Digit:  isDigit(b),
-				Symbol: isSymbol(b),
+				Value:      string(b),
+				Type:       getType(b),
+				NearSymbol: false,
 			}
-			// Add the cells to the row.
-			row = append(row, cell)
+			row.Cells = append(row.Cells, cell)
 		}
-		// Append the row to the data array.
-		data = append(data, row)
+		schematic.Rows = append(schematic.Rows, row)
 	}
 
 	if err := scanner.Err(); err != nil {
 		panic(err)
 	}
 
-	// Analyze data and update if a digit neighbors a symbol.
-	for y, line := range data {
-		for x, cell := range line {
-			// Only use origin cells that are digits.
-			if cell.Digit {
-				// Evaluate cell if neighboring cells contain a symbol
-				data[y][x].NearSymbol = isNearSymbol(y, x, data)
+	for y, row := range schematic.Rows {
+		for x, cell := range row.Cells {
+			if cell.Type == "digit" {
+				schematic.Rows[y].Cells[x].NearSymbol = isNearSymbol(y, x, schematic)
 			}
 		}
 	}
 
-	// Iterating through data (again) for digits and to build out numbers.
-	var numbersCell [][]Cell
-	var numberCell []Cell
-	for _, line := range data {
-		for _, cell := range line {
-			// Initial condition for iterating over cells, thus ensuring not
-			// outputting empty slices.
-			switch {
-			case cell.Digit:
-				numberCell = append(numberCell, cell)
-			case !cell.Digit:
-				if len(numberCell) > 0 && isValid(numberCell) {
-					numbersCell = append(numbersCell, numberCell)
+	for _, row := range schematic.Rows {
+		for _, cell := range row.Cells {
+			if cell.Type == "symbol" {
+
+			}
+		}
+	}
+
+	var numbers [][]Cell
+	var number []Cell
+	for _, row := range schematic.Rows {
+		for _, cell := range row.Cells {
+			switch cell.Type {
+			case "digit":
+				number = append(number, cell)
+			default:
+				if len(number) > 0 && isPartNumber(number) {
+					numbers = append(numbers, number)
 				}
-				numberCell = []Cell{}
+				number = []Cell{}
 			}
 		}
+		if len(number) > 0 && isPartNumber(number) {
+			numbers = append(numbers, number)
+		}
+		number = []Cell{}
 	}
 
-	var partNumbersStr [][]string
+	var partNumbers [][]string
 	var partNumber []string
-	for _, cells := range numbersCell {
-		for _, number := range cells {
-			partNumber = append(partNumber, number.Value)
+	for _, number := range numbers {
+		for _, cell := range number {
+			partNumber = append(partNumber, cell.Value)
 		}
-		partNumbersStr = append(partNumbersStr, partNumber)
+		partNumbers = append(partNumbers, partNumber)
 		partNumber = []string{}
 	}
 
-	// [][]string to []int conversion
-	var partNumbersInt []int
-	for _, slice := range partNumbersStr {
-		str := strings.Join(slice, "")
+	partNumbersInt := numStrToInt(partNumbers)
+	fmt.Println(partNumbersInt)
+
+	var numSum int
+	for _, n := range partNumbersInt {
+		numSum += n
+	}
+	fmt.Println(numSum)
+}
+
+func numStrToInt(partNumbers [][]string) []int {
+	var numbersInt []int
+	for _, v := range partNumbers {
+		str := strings.Join(v, "")
 		num, err := strconv.Atoi(str)
 		if err != nil {
 			fmt.Println(err)
 		}
-		partNumbersInt = append(partNumbersInt, num)
+		numbersInt = append(numbersInt, num)
 	}
+	return numbersInt
+}
 
-	// Sum
-	var partNumSum int
-	for _, number := range partNumbersInt {
-		partNumSum += number
+func getType(r rune) string {
+	switch {
+	case unicode.IsDigit(r):
+		return "digit"
+	case !unicode.IsDigit(r) && r != '.':
+		return "symbol"
 	}
-
-	// Output
-	fmt.Println("Part Numbers:", partNumbersInt)
-	fmt.Println("Sum of Part Numbers:", partNumSum)
+	return ""
 }
 
-
-func isDigit(r rune) bool {
-	return unicode.IsDigit(r)
-}
-
-func isSymbol(r rune) bool {
-	return r != '.' && r != ' ' && !isDigit(r)
-}
-
-// isNearSymbol evaluates if a cell neighbors a cell with a symbol.
-func isNearSymbol(y, x int, data [][]Cell) bool {
-	maxY := len(data)
-	maxX := len(data[0])
+func isNearSymbol(y, x int, schematic Schematic) bool {
+	maxY := len(schematic.Rows)
+	maxX := len(schematic.Rows[0].Cells)
 
 	for i := -1; i <= 1; i++ {
 		for j := -1; j <= 1; j++ {
 			if i == 0 && j == 0 {
-				continue // Skip the current cell
+				continue
 			}
-			// Starts at top-left diagonal and moves left-to-right across while
-			// iterating downwards.
-			newY, newX := y+i, x+j
-			// Boundary checks and then checks if cell value is a symbol.
-			if newY >= 0 && newY < maxY && newX >= 0 && newX < maxX && data[newY][newX].Symbol {
+			seekY, seekX := y+i, x+j
+			if seekY >= 0 && seekY < maxY && seekX >= 0 && seekX < maxX && schematic.Rows[seekY].Cells[seekX].Type == "symbol" {
 				return true
 			}
 		}
@@ -153,8 +150,7 @@ func isNearSymbol(y, x int, data [][]Cell) bool {
 	return false
 }
 
-// isValid evaluates if the numberCell contains any cells.NearSymbol
-func isValid(number []Cell) bool {
+func isPartNumber(number []Cell) bool {
 	for _, cell := range number {
 		if cell.NearSymbol {
 			return true
