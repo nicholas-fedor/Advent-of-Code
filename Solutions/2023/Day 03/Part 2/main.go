@@ -1,7 +1,3 @@
-// TODO: Determine best method for obtaining coordinate pairs.
-// Currently not filtering second coordinate from known coordinate pairs prior
-// to applying as coord2.
-
 package main
 
 import (
@@ -12,6 +8,8 @@ import (
 	"strings"
 	"unicode"
 )
+
+const FilePath = "input.txt"
 
 // Schematic represents the rows of cells within a schematic
 type Schematic struct {
@@ -29,6 +27,7 @@ type Cell struct {
 	Type  CellType // Type specifies if the cell contains a digit or symbol
 }
 
+// CellType represents the type of value within a cell
 type CellType string
 
 const (
@@ -37,11 +36,8 @@ const (
 )
 
 func main() {
-	// Input filepath
-	filepath := "input.txt"
-
 	// Opens the file
-	file, err := os.Open(filepath)
+	file, err := os.Open(FilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -53,85 +49,119 @@ func main() {
 		panic(err)
 	}
 
-	// Returns the part numbers from the schematic
-	partNumbers, err := getPartNumbers(*schematic)
-	if err != nil {
-		panic(err)
-	}
+	// Returns all coordinates for the first digits of gear part numbers
+	var allGearCoordinates [][][]int
+	for y, row := range schematic.Rows {
+		for x, cell := range row.Cells {
+			if cell.Type == Gear {
 
-	// Returns the gear ratios (i.e. the product of part number pairs)
-	gearRatios := getGearRatios(partNumbers)
+				var gearNumberCoordinates [][]int
+				// Starts iterating from [-1][-1], i.e. top, left and moves
+				// first from left to right and then top to bottom.
+				for j := -1; j <= 1; j++ {
+					for i := -1; i <= 1; i++ {
+						evalY, evalX := y+j, x+i
 
-	// Returns the total sum of the gear ratios
-	totalSum := getTotalSum(gearRatios)
+						// Skips the center i.e. the (*) gear symbol
+						if j == 0 && i == 0 {
+							continue
+						}
 
-	// Outputs the total sum
-	fmt.Println("Total Sum of Gear Ratios:", totalSum)
-}
+						// Returns the coordinate for the first digit of a
+						// possible part number
+						var firstDigitCoordinate []int
+						for isWithinBounds(evalX, evalY, *schematic) && isDigit(evalX, evalY, *schematic) {
+							firstDigitCoordinate = []int{evalY, evalX}
+							evalX-- // Ensures the loop continues until hitting the first digit while moving right to left
+						}
+						// Moves the returned coordinate to a slice matrix for
+						// the respective gear
+						if len(firstDigitCoordinate) > 0 {
+							gearNumberCoordinates = append(gearNumberCoordinates, firstDigitCoordinate)
+							firstDigitCoordinate = []int{}
+						}
+					}
+				} // End loop for gear
 
-// getTotalSum returns the total sum of all gear ratios
-func getTotalSum(gearRatios []int) int {
-	var totalSum int
-	for _, gearRatio := range gearRatios {
-		// fmt.Println(gearRatio)
-		totalSum += gearRatio
-	}
-	return totalSum
-}
+				// Returns coordinates for possible part numbers when there is
+				// more than one neighboring digit.
+				if len(gearNumberCoordinates) > 1 {
 
-// getGearRatios returns the product of part number pairs
-func getGearRatios(partNumbers []int) []int {
-	var gearRatios []int
-	for x := 0; x < len(partNumbers)-1; x += 2 {
-		gearRatios = append(gearRatios, partNumbers[x]*partNumbers[x+1])
-	}
-	return gearRatios
-}
+					// First coordinate pair
+					coordinate1 := gearNumberCoordinates[0]
 
-// getPartNumbers evaluates the schematic for all part numbers
-func getPartNumbers(schematic Schematic) ([]int, error) {
-	// Returns all of the coordinate pairs for the first digits of part numbers
-	coordinatePairs := getCoordinatePairs(schematic)
+					// Last coordinate pair (there are often more than two
+					// coordinate pairs per gear, but we are only interested in
+					// the first and last pairs.)
+					coordinate2 := gearNumberCoordinates[len(gearNumberCoordinates)-1]
+					gearCoordinate := [][]int{coordinate1, coordinate2}
 
-	// Returns all of the part numbers as strings
-	var partNumbersStr [][]string
-	for _, coordinatePair := range coordinatePairs { // All coordinate pairs
-		for _, coordinate := range coordinatePair { // Coordinate pairs for a gear
-			y, x := coordinate[0], coordinate[1]
-			partNumbersStr = append(partNumbersStr, getPartNumber(x, y, schematic))
+					// Avoids duplicated coordinates
+					if gearCoordinate[0][0] == gearCoordinate[1][0] && gearCoordinate[0][1] == gearCoordinate[1][1] {
+						gearCoordinate = [][]int{}
+						continue
+					}
+
+					// Places all the returned coordinates into a matrix
+					allGearCoordinates = append(allGearCoordinates, gearCoordinate)
+				}
+			}
 		}
 	}
 
-	// Converts the strings into integers
-	partNumbersInt, err := convertToNumbers(partNumbersStr)
-	if err != nil {
-		return nil, err
-	}
-	return partNumbersInt, nil
-}
+	// Returns the part number pairs for all gears
+	var values [][]int
+	var valueA, valueB []string
+	for _, gearCoordinate := range allGearCoordinates {
+		gearAY := gearCoordinate[0][0]
+		gearAX := gearCoordinate[0][1]
+		gearBY := gearCoordinate[1][0]
+		gearBX := gearCoordinate[1][1]
 
-// convertToNumbers converts an matrix of string slices containing numbers into integers
-func convertToNumbers(numbersStringMatrix [][]string) ([]int, error) {
-	var numbersIntSlice []int
-	for _, digit := range numbersStringMatrix {
-		numberString := strings.Join(digit, "")
-		numberInt, err := strconv.Atoi(numberString)
+		// Returns the first part number
+		for isWithinBounds(gearAX, gearAY, *schematic) && isDigit(gearAX, gearAY, *schematic) {
+			digit := schematic.Rows[gearAY].Cells[gearAX].Value
+			valueA = append(valueA, digit)
+			gearAX++
+		}
+
+		// Joins the string values together to form the number, returned as an integer
+		intA, err := strconv.Atoi(strings.Join(valueA, ""))
 		if err != nil {
-			return nil, err
+			panic(err)
 		}
-		numbersIntSlice = append(numbersIntSlice, numberInt)
-	}
-	return numbersIntSlice, nil
-}
+		valueA = []string{}
 
-// getPartNumber returns a slice of string values consisting of digits
-func getPartNumber(x, y int, schematic Schematic) []string {
-	var partNumber []string
-	for isWithinBounds(x, y, schematic) && isDigit(x, y, schematic) {
-		partNumber = append(partNumber, schematic.Rows[y].Cells[x].Value)
-		x++
+		// Returns the second part number
+		for isWithinBounds(gearBX, gearBY, *schematic) && isDigit(gearBX, gearBY, *schematic) {
+			digit := schematic.Rows[gearBY].Cells[gearBX].Value
+			valueB = append(valueB, digit)
+			gearBX++
+		}
+
+		// Joins the string values together to form the number, returned as an integer
+		intB, err := strconv.Atoi(strings.Join(valueB, ""))
+		if err != nil {
+			panic(err)
+		}
+		valueB = []string{}
+
+		// Merges the two part numbers together into a slice matrix
+		joinedValues := []int{intA, intB}
+		values = append(values, joinedValues)
 	}
-	return partNumber
+
+	// Returns and outputs the following:
+	// Gear: [gear number] | [part numbers]
+	// Product: [product of part numbers] | SumTotal: [cumulative total of part number products]
+	var sumTotal int
+	for x, line := range values {
+		x++
+		fmt.Println("Gear:", x, "|", line)
+		gearProduct := line[0] * line[1]
+		sumTotal += gearProduct
+		fmt.Println("Product:", gearProduct, "|", "SumTotal:", sumTotal)
+	}
 }
 
 // isWithinBounds evaluates if x and y are within the schematic
@@ -139,54 +169,6 @@ func isWithinBounds(x, y int, schematic Schematic) bool {
 	maxY := len(schematic.Rows)
 	maxX := len(schematic.Rows[0].Cells)
 	return x >= 0 && x < maxX && y >= 0 && y < maxY
-}
-
-// getCoordinate returns the coordinates for a the first digit in a number
-func getCoordinate(x, y int, schematic Schematic) []int {
-	var coordinate []int
-	for isWithinBounds(x, y, schematic) && isDigit(x, y, schematic) {
-		coordinate = []int{y, x}
-		x-- // Seek left
-	}
-	return coordinate
-}
-
-// getCoordinatePair returns a pair of coordinates for a specific gear
-func getCoordinatePair(x, y int, schematic Schematic) [][]int {
-	var coordinatePair [][]int
-	var coordinate []int
-	for j := -1; j <= 1; j++ { // Row iterator
-		for i := -1; i <= 1; i++ { // Column iterator
-			evalY, evalX := j+y, i+x
-			if j == 0 && i == 0 {
-				continue
-			}
-			coordinate = getCoordinate(evalX, evalY, schematic)
-			if len(coordinate) == 2 {
-				coordinatePair = append(coordinatePair, coordinate)
-				fmt.Println(coordinatePair)
-			}
-		}
-	}
-	return coordinatePair
-}
-
-// getCoordinatePairs returns the coordinates for the first digits of part
-// numbers that are paired to gears.
-func getCoordinatePairs(schematic Schematic) [][][]int {
-	var coordinatePairs [][][]int // all coordinate pairs
-	var coordinatePair [][]int
-	for y, row := range schematic.Rows {
-		for x, cell := range row.Cells {
-			if cell.Type == Gear {
-				coordinatePair = getCoordinatePair(x, y, schematic)
-				if len(coordinatePair) == 2 {
-					coordinatePairs = append(coordinatePairs, coordinatePair)
-				}
-			}
-		}
-	}
-	return coordinatePairs
 }
 
 // isDigit evaluates if the cell within the schematic is a digit

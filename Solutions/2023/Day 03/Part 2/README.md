@@ -39,10 +39,31 @@ What is the sum of all of the gear ratios in your engine schematic?
     - Look up/down/left/right/diagonal for digit
     - If adjacent to a digit, then build out a number
       - Look left and/or right to adjacent cells for digits and append.
-      - Multiply set to 
+      - Multiply set to obtain a product of the two numbers.
+- Summarize the products for each gear.
 
 ## Solution
 
-Total Sum of Gear Ratios: ?
+Total Sum of Gear Ratios: 80,703,636
 
 ## Learning Review
+
+I ended up spending a bunch of time on this problem.
+My biggest issue was initially prematurely refactoring my code, which resulted
+in it becoming more difficult to debug for handling edge-cases.
+
+There were some challenges that I later resolved after re-writing.
+
+- Using the first and last coordinate pairs instead of the first and second.
+  - There are several cases when multi-digit numbers are within the 3x3 block of
+    a gear.
+  - Lines 91 and 96 of my code resolved this by simply taking the first and last
+    coordinate pairs.
+  - This isn't the best way to handle this, but it works for the purposes of
+    this exercise.
+- Filtering out duplicate coordinates.
+  - As an example, I was seeing the number "14" at the end of line 134 coming
+    through.
+  - Line 100 of my code resolved this issue.
+  - This would be mitigated by better initial handling of coordinates around
+    line 90.
