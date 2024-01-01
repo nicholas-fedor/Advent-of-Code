@@ -2,3 +2,4 @@
 *.html
 *.exe
 .vscode/settings.json
+ScrapeText/secrets.env

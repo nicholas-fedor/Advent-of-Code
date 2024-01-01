@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	handle, error := os.Open("test")
+	handle, error := os.Open("input.txt")
 	if error != nil {
 		log.Fatal(error)
 	}

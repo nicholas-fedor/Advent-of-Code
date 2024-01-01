@@ -18,7 +18,7 @@ Directory structure is as follows:
 
 */
 
-package scrapetext
+package main
 
 import (
 	"fmt"
@@ -29,7 +29,20 @@ import (
 	"time"
 
 	"github.com/gocolly/colly"
+	"github.com/joho/godotenv"
 )
+
+// getSecrets loads the user agent and cookie from the secrets.env file.
+func getSecrets() (string, string) {
+	err := godotenv.Load("secrets.env")
+	if err != nil {
+		log.Fatal(err)
+	}
+	UserAgent := os.Getenv("USER_AGENT")
+	Cookie := os.Getenv("COOKIE")
+
+	return UserAgent, Cookie
+}
 
 // promptFileExists checks if the prompt file already exists for a given year and day.
 func promptFileExists(year, day int) bool {
@@ -46,6 +59,9 @@ func getPrompt(year, day int) (string, string, string, error) {
 	var err error
 	var url string
 
+	// Adds values from secrets.env
+	UserAgent, Cookie := getSecrets()
+
 	// Creates Colly Collector
 	c := colly.NewCollector(
 		colly.AllowedDomains("adventofcode.com"),
@@ -59,6 +75,12 @@ func getPrompt(year, day int) (string, string, string, error) {
 
 		// Outputs remaining text.
 		prompt = strings.TrimPrefix(h.Text, header)
+	})
+
+	// Sets the cookie and user-agent for the request header.
+	c.OnRequest(func(r *colly.Request) {
+		r.Headers.Set("user-agent", UserAgent)
+		r.Headers.Set("cookie", Cookie)
 	})
 
 	// Error handling for request.

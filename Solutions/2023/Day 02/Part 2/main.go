@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	Filename = "input"
+	Filename = "input.txt"
 )
 
 type Game struct {

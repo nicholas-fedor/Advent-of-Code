@@ -12,7 +12,7 @@ import (
 
 const (
 	// Input file
-	Filename = "input"
+	Filename = "input.txt"
 
 	// Filter criteria
 	RedMax   = 12

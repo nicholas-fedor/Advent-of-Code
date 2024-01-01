@@ -27,7 +27,7 @@ func main() {
 	var totalSum int
 
 	// Opens input file.
-	input, err := os.Open("input")
+	input, err := os.Open("input.txt")
 	if err != nil {
 		log.Fatalln(err)
 	}
