@@ -40,10 +40,20 @@ Take a seat in the large pile of colorful cards. How many points are they worth 
 
 ## Analysis
 
--
+- Enumerate through each card
+- Extract the numbers for each set
+- Enumerate through each of the card's numbers
+  - Enumerate through the winning numbers
+  - If the card number matches a winning number...
+    - If it's the first match, then add a point
+    - If it's a subsequent match, then multiply the card's points by 2.
+- Sum the total points for each card for the final solution.
 
 ## Solution
 
-Total points: ?
+Total points: 26,914
 
 ## Learning Review
+
+The regex was the most difficult part of this.
+I was lazy and ended up using ChatGPT to generate the regex.
