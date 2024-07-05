@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// Input filepath
-	filePath := "input.txt"
+	filePath := "sample.txt"
 
 	// Opens the file
 	file, err := os.Open(filePath)
@@ -21,7 +21,7 @@ func main() {
 
 	// Instantiates the scanner object with the file
 	scanner := bufio.NewScanner(file)
-	
+
 	// totalPoints tracks the overall total points earned across all cards
 	var totalPoints int
 
@@ -44,7 +44,7 @@ func main() {
 			for i, winningNumberStr := range winningNumbersStrSlice {
 				winningNumbersIntSlice[i] = atoi(winningNumberStr)
 			}
-			
+
 			// Handling of card numbers i.e. right of the pipe "|"
 			cardNumbersStrSlice := strings.Fields(match[2]) // Split by spaces
 			cardNumbersIntSlice := make([]int, len(cardNumbersStrSlice))
@@ -52,42 +52,37 @@ func main() {
 				cardNumbersIntSlice[i] = atoi(cardNumberStr)
 			}
 
-
 			// Iterates through each card's numbers to compare against the
 			// card's winning numbers
 			for _, cardNumber := range cardNumbersIntSlice {
 				for _, winningNumber := range winningNumbersIntSlice {
 					// If the card number is a winning number...
 					if cardNumber == winningNumber {
-						fmt.Println("Matching Number:", cardNumber)
-						switch {
-						// If it's the first match, cardPoints will equal 0
-						case cardPoints == 0:
-							// Increment cardPoints by 1
-							cardPoints++
-						// For subsequent matches...
-						case cardPoints > 0:
-							// Multiply cardPoints by 2
-							cardPoints = cardPoints * 2
-						}
-						// Output for debugging
-						fmt.Println("Card Points:", cardPoints)
+						// Debugging
+						// fmt.Println("Matching Number:", cardNumber)
+						// Increment cardPoints by 1
+						cardPoints++
+
+						// TODO: Use cardPoints to determine the number of
+						// recursive iterations.
+						//
+						// Goal is to determine the total points of all cards
+						// (originals and copies).
 					}
 				}
 			}
-			// Sums the total points for each card
-			totalPoints += cardPoints
-			// Output for debugging
-			fmt.Println("Total Points:", totalPoints)
-			fmt.Println()
+			// Output points per card
+			if cardPoints > 0 {
+				fmt.Println("Card Points:", cardPoints)
+			}
 		}
-		
 	}
-	
+
+	// Scanner error handling.
 	if err := scanner.Err(); err != nil {
 		panic(err)
 	}
-	
+
 	// Outputs the final answer
 	fmt.Println()
 	fmt.Println("Total Points:", totalPoints)
