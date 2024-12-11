@@ -160,11 +160,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(data)
 
 	// Evaluate the data to calculate the differences between the n and n+1 elements
 	differences := getDifferences(data)
-	fmt.Println(differences)
 
 	// Evaluate the differences to determine if all the elements in the row meet the criteria of being "safe"
 	safeReportsCount := getSafeReportsCount(differences)
