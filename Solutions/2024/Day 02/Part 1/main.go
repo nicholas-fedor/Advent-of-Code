@@ -101,7 +101,7 @@ func isAllPositive(differences []int) bool {
 	var count int
 	// Evaluate if each element in the array
 	for _, difference := range differences {
-		// If the element meets the critera, then increment the counter
+		// If the element meets the criteria, then increment the counter
 		if difference > 0 {
 			count++
 		}
@@ -117,7 +117,7 @@ func isAllNegative(differences []int) bool {
 	var count int
 	// Evaluate if each element in the array
 	for _, difference := range differences {
-		// If the element meets the critera, then increment the counter
+		// If the element meets the criteria, then increment the counter
 		if difference < 0 {
 			count++
 		}
@@ -133,7 +133,7 @@ func isWithinRange(differences []int) bool {
 	var count int
 	// Evaluate if each element in the array
 	for _, difference := range differences {
-		// If the element meets the critera, then increment the counter
+		// If the element meets the criteria, then increment the counter
 		if (difference >= 1 && difference <= 3) || (difference <= -1 && difference >= -3) {
 			count++
 		}
