@@ -99,6 +99,104 @@ func generatePermutationsRecursive(row []int, indices []int, index, n, length in
 	}
 }
 
+func getAllDifferences(allPermutations [][][]int) [][][]int {
+	var allDifferences [][][]int
+
+	for _, allReportPermutations := range allPermutations {
+		var reportDifferences [][]int
+		for _, permutation := range allReportPermutations {
+			reportDifferences = append(reportDifferences, getReportDifferences(permutation))
+		}
+		allDifferences = append(allDifferences, reportDifferences)
+	}
+
+	return allDifferences
+}
+
+func getReportDifferences(permutation []int) []int {
+	var reportDifferences []int
+
+	for i := 0; i < len(permutation)-1; i++ {
+		reportDifferences = append(reportDifferences, permutation[i+1]-permutation[i])
+	}
+
+	return reportDifferences
+}
+
+func getSafeReportsCount(allDifferences [][][]int) int {
+	var safeReportsCount int
+
+	for _, row := range allDifferences {
+		var safePermutationCount int
+		for _, permutation := range row {
+			if isSafe(permutation) {
+				safePermutationCount++
+			}
+		}
+		if safePermutationCount > 0 {
+			safeReportsCount++
+		}
+	}
+
+	return safeReportsCount
+}
+
+func isSafe(report []int) bool {
+	if (isAllPositive(report) || isAllNegative(report)) && isWithinRange(report) {
+		return true
+	}
+	return false
+}
+
+func isAllPositive(differences []int) bool {
+	var count int
+	// Evaluate if each element in the array
+	for _, difference := range differences {
+		// If the element meets the criteria, then increment the counter
+		if difference > 0 {
+			count++
+		}
+	}
+	// If the count is equal to the number of elements in the array, then all of the elements meet the criteria
+	if count == len(differences) {
+		return true
+	}
+	return false
+}
+
+func isAllNegative(differences []int) bool {
+	var count int
+	// Evaluate if each element in the array
+	for _, difference := range differences {
+		// If the element meets the criteria, then increment the counter
+		if difference < 0 {
+			count++
+		}
+	}
+	// If the count is equal to the number of elements in the array, then all of the elements meet the criteria
+	if count == len(differences) {
+		return true
+	}
+	return false
+}
+
+func isWithinRange(differences []int) bool {
+	var count int
+	// Evaluate if each element in the array
+	for _, difference := range differences {
+		// If the element meets the criteria, then increment the counter
+		if (difference >= 1 && difference <= 3) || (difference <= -1 && difference >= -3) {
+			count++
+		}
+	}
+	// If the count is equal to the number of elements in the array, then all of the elements meet the criteria
+	if count == len(differences) {
+		return true
+	}
+
+	return false
+}
+
 func main() {
 	// Open the file
 	// file, err := openFile(SampleFile)
@@ -113,42 +211,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Debug output
-	// fmt.Println(data)
-
-	// TODO: Implement logic to omit x levels and then determine if the report is safe.
-
-	// Thought - expand data into variants based on if x levels are omitted.
-	// i.e. [1 2 3 4 5] with a single omitted level expands into the following:
-	// [2 3 4 5], [1 3 4 5], [1 2 4 5], [1 2 3 5], [1 2 3 4]
-	// In the problem, the criteria is still as follows:
-	// - The levels are either all increasing or decreasing
-	// - Any two adjacent levels differ by at least one and as most three
-	// As an example, report #3 = [9 7 6 2 1]
-	// If omitting a single level, then that expands to the following:
-	// a) [7 6 2 1]
-	// b) [9 6 2 1]
-	// c) [9 7 2 1]
-	// d) [9 7 6 1]
-	// e) [9 7 6 2]
-	// With the following differences (left to right)
-	// a) [-1 -4 -1]
-	// b) [-3 -4 -1]
-	// c) [-2 -5 -1]
-	// d) [-2 -1 -5]
-	// e) [-2 -1 -4]
-	// When evaluated based on the criteria:
-	// a) [-1 -4 -1] = -4 is greater than -3 = unsafe
-	// b) [-3 -4 -1] = -4 is greater than -3 = unsafe
-	// c) [-2 -5 -1] = -5 is greater than -3 = unsafe
-	// d) [-2 -1 -5] = -5 is greater than -3 = unsafe
-	// e) [-2 -1 -4] = -4 is greater than -3 = unsafe
-	// If there were any of the variations that were safe, then we could +1 a safeReportSet counter.
 
 	numFieldsOmitted := 1
 	allPermutations := getAllPermutations(data, numFieldsOmitted)
-	// Debug output
-	for _, reportPermutations := range allPermutations {
-		fmt.Println(reportPermutations)
-	}
+
+	allDifferences := getAllDifferences(allPermutations)
+
+	safeReportsCount := getSafeReportsCount(allDifferences)
+
+	fmt.Printf("There are %d safe reports\n", safeReportsCount)
 }
