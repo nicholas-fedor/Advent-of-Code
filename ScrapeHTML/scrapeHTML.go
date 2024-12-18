@@ -1,17 +1,17 @@
 /*
-Copyright © 2023 Nicholas Fedor
+Copyright © 2024 Nicholas Fedor
 
 This is a simple web scraper for Eric Wastl's Advent of Code project.
 https://adventofcode.com
 
 The advent calendar is always from December 1st to the 25th.
 Oldest event: 2015
-Most recent: 2023
+Most recent: 2024
 */
 
 // scrapeHTML obtains all of the data from the Advent of Code and organizes it
 // into a local website.
-package scrapehtml
+package main
 
 import (
 	"fmt"
