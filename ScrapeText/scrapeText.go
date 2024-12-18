@@ -6,7 +6,7 @@ https://adventofcode.com
 
 The advent calendar is always from December 1st to the 25th.
 Oldest event: 2015
-Most recent: 2023
+Most recent: 2024
 
 The scraped data will be saved as text files.
 Directory structure is as follows:
@@ -104,7 +104,7 @@ func createFileContent(url, header, prompt string) string {
 }
 
 func main() {
-	// Loops from 2015 to current year (2023).
+	// Loops from 2015 to current year (2024).
 	// If current year, then only outputs to current day.
 	// Otherwise, outputs days 1 to 25.
 	startYear := 2015
