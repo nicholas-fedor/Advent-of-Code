@@ -71,6 +71,22 @@ func getDataString(data []string) string {
 	return dataString
 }
 
+func getOutput(matches [][]string) (int, error) {
+	var output int
+	for _, match := range matches {
+		num1, err := strconv.Atoi(match[1])
+		if err != nil {
+			return 0, err
+		}
+		num2, err := strconv.Atoi(match[2])
+		if err != nil {
+			return 0, err
+		}
+		output += num1 * num2
+	}
+	return output, nil
+}
+
 func main() {
 	// Open the file
 	// file, err := openFile(SampleFile)
@@ -90,12 +106,11 @@ func main() {
 	}
 
 	// Calculate the sum of products
-	var output int
-	for _, match := range matches {
-		num1, _ := strconv.Atoi(match[1])
-		num2, _ := strconv.Atoi(match[2])
-		output += num1 * num2
+	output, err := getOutput(matches)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
+	// Print the result
 	fmt.Println("Output:", output)
 }
